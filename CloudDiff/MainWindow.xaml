@@ -1,0 +1,17 @@
+﻿<Window x:Class="CloudDiff.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:CloudDiff"
+        mc:Ignorable="d"
+        Title="CloudRating Calculator by CloudHolic" Height="253.292" Width="735" AllowDrop="True" Drop="Window_Drop">
+    <Grid x:Name="MainGrid">
+        <Button x:Name="PathButton" Content="Open" HorizontalAlignment="Left" Margin="620,50,0,0" VerticalAlignment="Top" Width="75" Height="25" Click="Open_Click"/>
+        <TextBox x:Name="PathText" HorizontalAlignment="Left" Height="25" Margin="30,50,0,0" TextWrapping="NoWrap" VerticalAlignment="Top" Width="550" MaxLines="1" AllowDrop="True"/>
+        <Button x:Name="CalcButton" Content="Calculate" HorizontalAlignment="Left" Margin="30,130,0,0" VerticalAlignment="Top" Width="205" Height="35" Click="Calc_Click"/>
+        <Label x:Name="PathLabel" Content="Osu! File Path:" HorizontalAlignment="Left" Margin="25,25,0,0" VerticalAlignment="Top" Width="150"/>
+        <TextBox x:Name="StateBlock" HorizontalAlignment="Left" Margin="280,100,0,0" Height="105" Width="415" TextWrapping="Wrap" VerticalAlignment="Top" Background="White" IsReadOnly="True" SelectionBrush="#FFABADB3" AllowDrop="True"/>
+
+    </Grid>
+</Window>
