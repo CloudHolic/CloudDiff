@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 
 using CloudDiff.Structures;
+using CloudDiff.Utils;
 
 // ReSharper disable InconsistentNaming
 namespace CloudDiff.Processor
@@ -20,6 +21,14 @@ namespace CloudDiff.Processor
         public int Count { get; }
 
         public bool SpecialStyle { get; }
+
+        //  Jack Cut-off points
+        private readonly double Jack = BpmConverter.BpmToMilliseconds(140);
+        private readonly double OnlyJack = BpmConverter.BpmToMilliseconds(160);
+        private readonly double SpecialJack = BpmConverter.BpmToMilliseconds(180);
+
+        //  Vibro Cut-off point
+        private readonly double Vibro = BpmConverter.BpmToMilliseconds(170);
 
         public PatternAnalyzer(List<Note> notes, List<LongNote> lns, int key, bool specialstyle)
         {
@@ -41,20 +50,20 @@ namespace CloudDiff.Processor
 
             foreach (var cur in notes)
             {
-                Notes[cur.Line].Add(cur);
+                Notes[cur.Lane].Add(cur);
 
                 if(!tempDic.ContainsKey(cur.Time))
                     tempDic.Add(cur.Time, new List<Tuple<int, int>>());
-                tempDic[cur.Time].Add(Tuple.Create(cur.Line, 0));
+                tempDic[cur.Time].Add(Tuple.Create(cur.Lane, 0));
             }
 
             foreach (var cur in lns)
             {
-                LNs[cur.Line].Add(cur);
+                LNs[cur.Lane].Add(cur);
 
                 if (!tempDic.ContainsKey(cur.Time))
                     tempDic.Add(cur.Time, new List<Tuple<int, int>>());
-                tempDic[cur.Time].Add(Tuple.Create(cur.Line, cur.Endtime));
+                tempDic[cur.Time].Add(Tuple.Create(cur.Lane, cur.Endtime));
             }
 
             var varList = tempDic.Keys.ToList();
@@ -72,7 +81,7 @@ namespace CloudDiff.Processor
             var jackCount = 0;
             var sectionList = new List<int>();
 
-            //  Jack: 3 or more notes which is in same line with gap <= 107ms.
+            //  Jack: 3 or more notes which is in same lane with gap <= 107ms (140BPM, 1/4 snap).
             for (var i = 0; i < Notes.Length; i++)
             {
                 for (var j = 0; j < Notes[i].Count - 2; j++)
@@ -84,10 +93,11 @@ namespace CloudDiff.Processor
                     var gap1 = Notes[i][j + 1].Time - Notes[i][j].Time;
                     var gap2 = Notes[i][j + 2].Time - Notes[i][j + 1].Time;
 
-                    if (SpecialStyle && i== 0 && (gap1 > 84 || gap2 > 84))
+                    //  If it's a scratch in 7+1k style, then 107ms => 84ms (180BPM, 1/4 snap).
+                    if (SpecialStyle && i== 0 && (gap1 > SpecialJack || gap2 > SpecialJack))
                         continue;
 
-                    if (gap1 > 107 || gap2 > 107)
+                    if (gap1 > Jack || gap2 > Jack)
                         continue;
 
                     sectionList.Clear();
@@ -97,7 +107,7 @@ namespace CloudDiff.Processor
                     for (var k = j + 2; k < Notes[i].Count - 1; k++)
                     {
                         var gap = Notes[i][k + 1].Time - Notes[i][k].Time;
-                        if ((SpecialStyle && gap > 84) || (!SpecialStyle && gap > 107))
+                        if ((SpecialStyle && gap > SpecialJack) || (!SpecialStyle && gap > Jack))
                         {
                             j = k;
                             break;
@@ -150,7 +160,7 @@ namespace CloudDiff.Processor
                         }
                     }
 
-                    //  If onlyJack, then 107ms => 94ms.
+                    //  If onlyJack, then 107ms => 94ms (160BPM, 1/4 snap).
                     if (!(SpecialStyle && i == 0) && onlyJack)
                     {
                         for (var k = 0; k < sectionList.Count - 2; k++)
@@ -161,13 +171,13 @@ namespace CloudDiff.Processor
                             var newGap1 = sectionList[k + 1] - sectionList[k];
                             var newGap2 = sectionList[k + 2] - sectionList[k + 1];
 
-                            if (newGap1 > 94 || newGap2 > 94)
+                            if (newGap1 > OnlyJack || newGap2 > OnlyJack)
                                 continue;
 
                             jackCount++;
                             for (var l = k + 2; l < sectionList.Count - 1; l++)
                             {
-                                if (sectionList[l + 1] - sectionList[l] > 94)
+                                if (sectionList[l + 1] - sectionList[l] > OnlyJack)
                                 {
                                     k = l;
                                     break;
@@ -185,12 +195,18 @@ namespace CloudDiff.Processor
             return (double)jackCount / Count;
         }
 
+        public double GetVibroRatio()
+        {
+            return 0.0;
+        }
+
         public double GetSpamRatio()
         {
             var spamCount = 0;
             var sectionLines = new List<int>();
             var sectionList = new List<int>();
 
+            //  Spam : 3 or more timings that contains notes in same lane (>= 3) consecutively, regardless of time.
             foreach (var cur in Times)
             {
                 //  Find a new spam section.
@@ -211,7 +227,7 @@ namespace CloudDiff.Processor
 
                     var Lines = temp.Count == sectionLines.Count;
                     for (var i = 0; i < temp.Count; i++)
-                        Lines = Lines && (temp[i] == sectionLines[i]);
+                        Lines = Lines && temp[i] == sectionLines[i];
 
                     if (LNEnd && Lines)
                         sectionList.Add(cur.Key);

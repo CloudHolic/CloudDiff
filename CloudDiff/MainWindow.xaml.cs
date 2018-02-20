@@ -77,17 +77,19 @@ namespace CloudDiff
                     (map.Data.Keys == 8 && (double)(jack.Notes[0].Count + jack.LNs[0].Count) / jack.Count < 0.06);
 
                 output = map.Data.Artist + " - " + map.Data.Title + " [" + map.Data.Diff + "]\nMade by " + map.Data.Creator
-                    + "\nBPM: " + (Math.Abs(map.Data.MaxBpm - map.Data.MinBpm) < 0.001
-                                    ? Convert.ToString(map.Data.MaxBpm, CultureInfo.CurrentCulture) 
-                                    : map.Data.MinBpm + " - " + map.Data.MaxBpm + "\t")
-                    + "\tOD: " + map.Data.Od + "\tHP: " + map.Data.Hp
-                    + "\tKeys: " + (specialStyle ? Convert.ToString(map.Data.Keys - 1) + "+1" : Convert.ToString(map.Data.Keys))
-                    + "\tJack Ratio: " + Math.Round(jack.GetJackRatio() * 100, 2) + "%"
+                         + "\nBPM: " + (Math.Abs(map.Data.MaxBpm - map.Data.MinBpm) < 0.001
+                             ? Convert.ToString(map.Data.MaxBpm, CultureInfo.CurrentCulture) 
+                             : map.Data.MinBpm + " - " + map.Data.MaxBpm + "\t")
+                         + "\tOD: " + map.Data.Od + "\tHP: " + map.Data.Hp
+                         + "\tKeys: " + (specialStyle ? Convert.ToString(map.Data.Keys - 1) + "+1" : Convert.ToString(map.Data.Keys))
 #if DEBUG
-                    + "\nSpam Ratio: " + Math.Round(jack.GetSpamRatio() * 100, 2) + "%"
-                    + "\nJenks Density: " + Math.Round(map.JenksDen, 2) + "\tCorrected Jenks Density: " + Math.Round(map.CorJenksDen, 2)
+                         + "\nJack Ratio: " + Math.Round(jack.GetJackRatio() * 100, 2) + "%\t"
+                         + "\tVibro Ratio: " + Math.Round(jack.GetVibroRatio() * 100, 2) + "%"
+                         + "\tSpam Ratio: " + Math.Round(jack.GetSpamRatio() * 100, 2) + "%"
+                         + "\nJenks Density: " + Math.Round(map.JenksDen, 2)
+                         + "\tCorrected Jenks Density: " + Math.Round(map.CorJenksDen, 2)
 #endif
-                    + "\nRating: " + Math.Round(RatingCalculator.CalcRating(map), 2);
+                         + "\nRating: " + Math.Round(RatingCalculator.CalcRating(map), 2);
 
                 sw.Stop();
 #if DEBUG

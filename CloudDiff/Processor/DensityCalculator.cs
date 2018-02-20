@@ -74,9 +74,7 @@ namespace CloudDiff.Processor
                 }
             }
 
-            var corJenksDen = 0.0;
-            for (var i = 0; i < denList.Count; i++)
-                corJenksDen += denList[i] * groupCorrection[groupList[i]];
+            var corJenksDen = denList.Select((t, i) => t * groupCorrection[groupList[i]]).Sum();
 
             var corGroupCount = 0;
             for (var i = 0; i < 10; i++)
@@ -155,8 +153,8 @@ namespace CloudDiff.Processor
             }
             else
             {
-                Notes.AddRange(notes.Where(cur => cur.Line != 0));
-                LNs.AddRange(lns.Where(cur => cur.Line != 0));
+                Notes.AddRange(notes.Where(cur => cur.Lane != 0));
+                LNs.AddRange(lns.Where(cur => cur.Lane != 0));
                 Key = key - 1;
             }
 
@@ -170,13 +168,13 @@ namespace CloudDiff.Processor
                 corLNs.Clear();
 
                 //  Get the notes in current period.
-                corNotes.AddRange(from cur in Notes where cur.Time >= i && cur.Time <= i + 1000 select new NoteCount(cur.Time, cur.Line, 0));
+                corNotes.AddRange(from cur in Notes where cur.Time >= i && cur.Time <= i + 1000 select new NoteCount(cur.Time, cur.Lane, 0));
 
                 corLNs.AddRange(
                     from cur in LNs where (cur.Time >= i && cur.Time <= i + 1000)
                     || (cur.Endtime >= i && cur.Endtime <= i + 1000)
                     || (cur.Time <= i && cur.Endtime >= i + 1000)
-                    select new LongNoteCount(cur.Time, cur.Endtime, cur.Line, 0));
+                    select new LongNoteCount(cur.Time, cur.Endtime, cur.Lane, 0));
 
                 //  Count the LN-count for each notes.
                 foreach (var cur in corLNs)

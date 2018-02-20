@@ -40,7 +40,7 @@ namespace CloudDiff.Parser
                     {
                         var temp = new Note
                         {
-                            Line = converter.GetLine(Convert.ToInt32(splitLine[0])),
+                            Lane = converter.GetLine(Convert.ToInt32(splitLine[0])),
                             Time = Convert.ToInt32(splitLine[2])
                         };
 
@@ -52,7 +52,7 @@ namespace CloudDiff.Parser
                     {
                         var temp = new LongNote
                         {
-                            Line = converter.GetLine(Convert.ToInt32(splitLine[0])),
+                            Lane = converter.GetLine(Convert.ToInt32(splitLine[0])),
                             Time = Convert.ToInt32(splitLine[2]),
                             Endtime = Convert.ToInt32(splitLine[5].Split(':')[0])
                         };
