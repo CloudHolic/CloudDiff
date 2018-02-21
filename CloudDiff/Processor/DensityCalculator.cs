@@ -126,7 +126,7 @@ namespace CloudDiff.Processor
 
                 //  Count the number of long notes.
                 counts += lns.Count(cur => (cur.Time >= i && cur.Time <= i + 1000)
-                                    || (cur.Endtime >= i && cur.Endtime <= i + 1000) || (cur.Time <= i && cur.Endtime >= i + 1000));
+                                    || (cur.EndTime >= i && cur.EndTime <= i + 1000) || (cur.Time <= i && cur.EndTime >= i + 1000));
 
                 density.Add(counts);
             }
@@ -172,24 +172,24 @@ namespace CloudDiff.Processor
 
                 corLNs.AddRange(
                     from cur in LNs where (cur.Time >= i && cur.Time <= i + 1000)
-                    || (cur.Endtime >= i && cur.Endtime <= i + 1000)
-                    || (cur.Time <= i && cur.Endtime >= i + 1000)
-                    select new LongNoteCount(cur.Time, cur.Endtime, cur.Lane, 0));
+                    || (cur.EndTime >= i && cur.EndTime <= i + 1000)
+                    || (cur.Time <= i && cur.EndTime >= i + 1000)
+                    select new LongNoteCount(cur.Time, cur.EndTime, cur.Lane, 0));
 
                 //  Count the LN-count for each notes.
                 foreach (var cur in corLNs)
                 {
                     foreach (var note in corNotes)
                     {
-                        if (note.Time >= cur.Time && note.Time < cur.Endtime)
+                        if (note.Time >= cur.Time && note.Time < cur.EndTime)
                             note.LNs++;
                     }
 
                     for (var j = corLNs.IndexOf(cur) + 1; j < corLNs.Count; j++)
                     {
-                        if ((corLNs[j].Time >= cur.Time && corLNs[j].Time < cur.Endtime)
-                            || (corLNs[j].Endtime >= cur.Time && corLNs[j].Endtime <= cur.Endtime)
-                            || (corLNs[j].Time <= cur.Time && corLNs[j].Endtime >= cur.Endtime))
+                        if ((corLNs[j].Time >= cur.Time && corLNs[j].Time < cur.EndTime)
+                            || (corLNs[j].EndTime >= cur.Time && corLNs[j].EndTime <= cur.EndTime)
+                            || (corLNs[j].Time <= cur.Time && corLNs[j].EndTime >= cur.EndTime))
                             corLNs[j].LNs++;
                     }
                 }

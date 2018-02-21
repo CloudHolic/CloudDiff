@@ -1,18 +1,18 @@
 ﻿namespace CloudDiff.Structures
 {
     //  Represents an LN.
-    public struct LongNote
+    public struct LongNote : INote
     {
         public LongNote(int time, int endtime, int lane)
         {
             Time = time;
-            Endtime = endtime;
+            EndTime = endtime;
             Lane = lane;
         }
 
         public int Time { get; set; }
 
-        public int Endtime { get; set; }
+        public int EndTime { get; set; }
 
         public int Lane { get; set; }
     }
@@ -23,14 +23,14 @@
         public LongNoteCount(int time, int endtime, int lane, int lns)
         {
             Time = time;
-            Endtime = endtime;
+            EndTime = endtime;
             Lane = lane;
             LNs = lns;
         }
 
         public int Time { get; set; }
 
-        public int Endtime { get; set; }
+        public int EndTime { get; set; }
 
         public int Lane { get; set; }
 

@@ -54,7 +54,7 @@ namespace CloudDiff.Parser
                         {
                             Lane = converter.GetLine(Convert.ToInt32(splitLine[0])),
                             Time = Convert.ToInt32(splitLine[2]),
-                            Endtime = Convert.ToInt32(splitLine[5].Split(':')[0])
+                            EndTime = Convert.ToInt32(splitLine[5].Split(':')[0])
                         };
 
                         lns.Add(temp);

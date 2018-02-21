@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using System.Windows.Forms;
 using CloudDiff.Structures;
 using CloudDiff.Utils;
 
@@ -14,6 +14,8 @@ namespace CloudDiff.Processor
 
         public List<LongNote>[] LNs { get; }
 
+        public List<INote>[] TotalNotes { get; }
+
         public Dictionary<int, List<Tuple<int, int>>> Times { get; }
 
         public int Key { get; }
@@ -22,10 +24,13 @@ namespace CloudDiff.Processor
 
         public bool SpecialStyle { get; }
 
-        //  Jack Cut-off points
+        //  OldJack Cut-off points
         private readonly double Jack = BpmConverter.BpmToMilliseconds(140);
         private readonly double OnlyJack = BpmConverter.BpmToMilliseconds(160);
         private readonly double SpecialJack = BpmConverter.BpmToMilliseconds(180);
+
+        //  Jack Cut-off point
+        private readonly double NewJack = BpmConverter.BpmToMilliseconds(1);
 
         //  Vibro Cut-off point
         private readonly double Vibro = BpmConverter.BpmToMilliseconds(170);
@@ -38,6 +43,7 @@ namespace CloudDiff.Processor
 
             Notes = new List<Note>[key];
             LNs = new List<LongNote>[key];
+            TotalNotes = new List<INote>[key];
             Times = new Dictionary<int, List<Tuple<int, int>>>();
 
             var tempDic = new Dictionary<int, List<Tuple<int, int>>>();
@@ -46,11 +52,13 @@ namespace CloudDiff.Processor
             {
                 Notes[i] = new List<Note>();
                 LNs[i] = new List<LongNote>();
+                TotalNotes[i] = new List<INote>();
             }
 
             foreach (var cur in notes)
             {
                 Notes[cur.Lane].Add(cur);
+                TotalNotes[cur.Lane].Add(cur);
 
                 if(!tempDic.ContainsKey(cur.Time))
                     tempDic.Add(cur.Time, new List<Tuple<int, int>>());
@@ -60,12 +68,16 @@ namespace CloudDiff.Processor
             foreach (var cur in lns)
             {
                 LNs[cur.Lane].Add(cur);
+                TotalNotes[cur.Lane].Add(cur);
 
                 if (!tempDic.ContainsKey(cur.Time))
                     tempDic.Add(cur.Time, new List<Tuple<int, int>>());
-                tempDic[cur.Time].Add(Tuple.Create(cur.Lane, cur.Endtime));
+                tempDic[cur.Time].Add(Tuple.Create(cur.Lane, cur.EndTime));
             }
 
+            foreach (var cur in TotalNotes)
+                cur.Sort(new NoteComparer());
+            
             var varList = tempDic.Keys.ToList();
             varList.Sort();
             foreach (var cur in varList)
@@ -76,7 +88,7 @@ namespace CloudDiff.Processor
             }
         }
 
-        public double GetJackRatio()
+        public double GetOldJackRatio()
         {
             var jackCount = 0;
             var sectionList = new List<int>();
@@ -152,7 +164,7 @@ namespace CloudDiff.Processor
 
                             for (var l = 0; l < LNs[k].Count; l++)
                             {
-                                if (LNs[k][l].Endtime <= sectionList[0])
+                                if (LNs[k][l].EndTime <= sectionList[0])
                                     continue;
                                 onlyJack = onlyJack && LNs[k][l].Time > sectionList[sectionList.Count - 1];
                                 break;
@@ -197,7 +209,45 @@ namespace CloudDiff.Processor
 
         public double GetVibroRatio()
         {
-            return 0.0;
+            var vibroCount = 0;
+            var sectionList = new List<int>();
+
+            //  Vibro : 12 or more notes which is in same lane with gap <= 88ms (170BPM, 1/4 snap)
+            foreach (var curLane in TotalNotes)
+            {
+                for (var i = 0; i < curLane.Count - 1; i++)
+                {
+                    if (i + 1 > curLane.Count)
+                        break;
+
+                    //  Find a new vibro section.
+                    var gap = curLane[i + 1].Time - curLane[i].Time;
+
+                    if (gap > Vibro)
+                        continue;
+
+                    sectionList.Clear();
+                    sectionList.Add(curLane[i].Time);
+                    sectionList.Add(curLane[i + 1].Time);
+
+                    for (var j = i + 1; j < curLane.Count - 1; j++)
+                    {
+                        gap = curLane[j + 1].Time - curLane[j].Time;
+                        if (gap > Vibro)
+                        {
+                            i = j;
+                            break;
+                        }
+
+                        sectionList.Add(curLane[j + 1].Time);
+                    }
+
+                    if (sectionList.Count >= 12)
+                        vibroCount += sectionList.Count;
+                }
+            }
+
+            return (double)vibroCount / Count;
         }
 
         public double GetSpamRatio()

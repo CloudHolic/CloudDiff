@@ -59,9 +59,11 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Processor\NoteComparer.cs" />
     <Compile Include="Structures\LongNote.cs" />
     <Compile Include="Structures\Metadata.cs" />
     <Compile Include="Structures\Note.cs" />
+    <Compile Include="Structures\INote.cs" />
     <Compile Include="Utils\BpmConverter.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>

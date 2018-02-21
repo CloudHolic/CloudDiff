@@ -63,9 +63,10 @@ namespace CloudDiff
 
             try
             {
+#if DEBUG
                 var sw = new Stopwatch();
                 sw.Start();
-
+#endif
                 Dispatcher.Invoke(DispatcherPriority.Normal, new Action(delegate
                 {
                     text = PathText.Text;
@@ -83,16 +84,16 @@ namespace CloudDiff
                          + "\tOD: " + map.Data.Od + "\tHP: " + map.Data.Hp
                          + "\tKeys: " + (specialStyle ? Convert.ToString(map.Data.Keys - 1) + "+1" : Convert.ToString(map.Data.Keys))
 #if DEBUG
-                         + "\nJack Ratio: " + Math.Round(jack.GetJackRatio() * 100, 2) + "%\t"
+                         + "\nJack Ratio: " + Math.Round(jack.GetOldJackRatio() * 100, 2) + "%   "
                          + "\tVibro Ratio: " + Math.Round(jack.GetVibroRatio() * 100, 2) + "%"
                          + "\tSpam Ratio: " + Math.Round(jack.GetSpamRatio() * 100, 2) + "%"
                          + "\nJenks Density: " + Math.Round(map.JenksDen, 2)
                          + "\tCorrected Jenks Density: " + Math.Round(map.CorJenksDen, 2)
 #endif
                          + "\nRating: " + Math.Round(RatingCalculator.CalcRating(map), 2);
-
-                sw.Stop();
 #if DEBUG
+                sw.Stop();
+
                 output += "\nElapsed Time: " + sw.ElapsedMilliseconds;
 #endif
             }
