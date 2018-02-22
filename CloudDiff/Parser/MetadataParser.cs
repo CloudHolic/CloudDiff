@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 
 using CloudDiff.CustomExceptions;
 using CloudDiff.Structures;
+using CloudDiff.Utils;
 
 namespace CloudDiff.Parser
 {
@@ -61,29 +63,26 @@ namespace CloudDiff.Parser
                     if (currentLine.StartsWith("[TimingPoints]"))
                     {
                         string cur;
-                        double minBpm = 0, maxBpm = 0;
+                        var bpms = new List<Tuple<double, double>>();
 
                         while ((cur = reader.ReadLine()) != null)
                         {
                             if (cur == "")
                                 break;
 
+                            var offset = Convert.ToDouble(cur.Split(',')[0]);
+
                             //  Osu stores BPM as 'Miliseconds/Beat'.
                             var msPerBeat = Convert.ToDouble(cur.Split(',')[1]);
                             if (msPerBeat < 0)
                                 continue;
 
-                            var curBpm = Math.Round(60000/msPerBeat, 2);
-                            if (Math.Abs(maxBpm) < 0.001 && Math.Abs(minBpm) < 0.001)
-                                maxBpm = minBpm = curBpm;
-                            else if (curBpm >= maxBpm)
-                                maxBpm = curBpm;
-                            else if (curBpm <= minBpm)
-                                minBpm = curBpm;
+                            var curBpm = BpmConverter.MillisecondsToBpm(msPerBeat, 1);
+
+                            bpms.Add(Tuple.Create(curBpm, offset));
                         }
 
-                        data.MaxBpm = maxBpm;
-                        data.MinBpm = minBpm;
+                        data.Bpms = bpms;
 
                         //  The rest part doesn't have any metadata.
                         break;

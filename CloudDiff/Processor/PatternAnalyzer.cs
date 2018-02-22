@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Windows.Forms;
+using CloudDiff.Comparer;
 using CloudDiff.Structures;
 using CloudDiff.Utils;
 
@@ -17,25 +17,20 @@ namespace CloudDiff.Processor
         public List<INote>[] TotalNotes { get; }
 
         public Dictionary<int, List<Tuple<int, int>>> Times { get; }
-
+        
         public int Key { get; }
 
         public int Count { get; }
 
         public bool SpecialStyle { get; }
 
-        //  OldJack Cut-off points
-        private readonly double Jack = BpmConverter.BpmToMilliseconds(140);
-        private readonly double OnlyJack = BpmConverter.BpmToMilliseconds(160);
-        private readonly double SpecialJack = BpmConverter.BpmToMilliseconds(180);
-
-        //  Jack Cut-off point
-        private readonly double NewJack = BpmConverter.BpmToMilliseconds(1);
+        //  Jack Cut-off points
+        private readonly List<Tuple<double, double>> NewJacks;
 
         //  Vibro Cut-off point
         private readonly double Vibro = BpmConverter.BpmToMilliseconds(170);
 
-        public PatternAnalyzer(List<Note> notes, List<LongNote> lns, int key, bool specialstyle)
+        public PatternAnalyzer(List<Note> notes, List<LongNote> lns, int key, List<Tuple<double, double>> bpms, bool specialstyle)
         {
             Key = key;
             Count = notes.Count + lns.Count;
@@ -45,6 +40,8 @@ namespace CloudDiff.Processor
             LNs = new List<LongNote>[key];
             TotalNotes = new List<INote>[key];
             Times = new Dictionary<int, List<Tuple<int, int>>>();
+
+            NewJacks = bpms.Select(cur => Tuple.Create(BpmConverter.BpmToMilliseconds(cur.Item1), cur.Item2)).ToList();
 
             var tempDic = new Dictionary<int, List<Tuple<int, int>>>();
 
@@ -86,125 +83,65 @@ namespace CloudDiff.Processor
                 temp.Sort(new TupleComparer());
                 Times.Add(cur, temp);
             }
+
+            GetJackSections();
         }
 
-        public double GetOldJackRatio()
+        public static bool IsSpecialStyle(List<Note> notes, List<LongNote> lns)
         {
-            var jackCount = 0;
-            var sectionList = new List<int>();
+            var firstLineNotes = 0;
+            var Count = notes.Count + lns.Count;
 
-            //  Jack: 3 or more notes which is in same lane with gap <= 107ms (140BPM, 1/4 snap).
-            for (var i = 0; i < Notes.Length; i++)
+            foreach (var cur in notes)
+                if (cur.Lane == 0)
+                    firstLineNotes++;
+
+            foreach (var cur in lns)
+                if (cur.Lane == 0)
+                    firstLineNotes++;
+
+            return (double)firstLineNotes / Count < 0.06;
+        }
+
+        public List<List<INote>> GetJackSections()
+        {
+            var sectionList = new List<List<INote>>();
+            var tempList = new List<INote>();
+
+            //  Just find all the 2 or more notes which is in same lane with gap <= (Current BPM, 1/4 snap)
+            foreach (var curLane in TotalNotes)
             {
-                for (var j = 0; j < Notes[i].Count - 2; j++)
+                for (var i = 0; i < curLane.Count - 1; i++)
                 {
-                    if (j + 2 > Notes[i].Count)
+                    if (i + 1 > curLane.Count)
                         break;
 
                     //  Find a new jack section.
-                    var gap1 = Notes[i][j + 1].Time - Notes[i][j].Time;
-                    var gap2 = Notes[i][j + 2].Time - Notes[i][j + 1].Time;
+                    var gap = curLane[i + 1].Time - curLane[i].Time;
 
-                    //  If it's a scratch in 7+1k style, then 107ms => 84ms (180BPM, 1/4 snap).
-                    if (SpecialStyle && i== 0 && (gap1 > SpecialJack || gap2 > SpecialJack))
+                    if (gap > GetJackCutOff(curLane[i].Time))
                         continue;
 
-                    if (gap1 > Jack || gap2 > Jack)
-                        continue;
+                    tempList.Clear();
+                    tempList.Add(curLane[i]);
+                    tempList.Add(curLane[i + 1]);
 
-                    sectionList.Clear();
-                    sectionList.Add(Notes[i][j].Time);
-                    sectionList.Add(Notes[i][j + 1].Time);
-                    sectionList.Add(Notes[i][j + 2].Time);
-                    for (var k = j + 2; k < Notes[i].Count - 1; k++)
+                    for (var j = i + 1; j < curLane.Count - 1; j++, i = j)
                     {
-                        var gap = Notes[i][k + 1].Time - Notes[i][k].Time;
-                        if ((SpecialStyle && gap > SpecialJack) || (!SpecialStyle && gap > Jack))
-                        {
-                            j = k;
+                        gap = curLane[j + 1].Time - curLane[j].Time;
+                        if (gap > GetJackCutOff(curLane[j].Time))
                             break;
-                        }
 
-                        sectionList.Add(Notes[i][k + 1].Time);
+                        tempList.Add(curLane[j + 1]);
                     }
-
-                    //  Check if there're any other notes except jack
-                    var onlyJack = true;
-                    if (!(SpecialStyle && i == 0))
-                    {
-                        for (var k = 0; k < Notes.Length; k++)
-                        {
-                            if (k == i)
-                                continue;
-
-                            for (var l = 0; l < Notes[k].Count; l++)
-                            {
-                                if (Notes[k][l].Time < sectionList[0])
-                                    continue;
-
-                                if (Notes[k][l].Time > sectionList[0])
-                                {
-                                    onlyJack = onlyJack && Notes[k][l].Time > sectionList[sectionList.Count - 1];
-                                    break;
-                                }
-
-                                var temp = true;
-                                for (var m = 1; m < sectionList.Count; m++)
-                                {
-                                    if ((l + m < Notes[k].Count) && (Notes[k][l + m].Time == sectionList[m]))
-                                        continue;
-
-                                    temp = false;
-                                    break;
-                                }
-
-                                onlyJack = onlyJack && temp;
-                                break;
-                            }
-
-                            for (var l = 0; l < LNs[k].Count; l++)
-                            {
-                                if (LNs[k][l].EndTime <= sectionList[0])
-                                    continue;
-                                onlyJack = onlyJack && LNs[k][l].Time > sectionList[sectionList.Count - 1];
-                                break;
-                            }
-                        }
-                    }
-
-                    //  If onlyJack, then 107ms => 94ms (160BPM, 1/4 snap).
-                    if (!(SpecialStyle && i == 0) && onlyJack)
-                    {
-                        for (var k = 0; k < sectionList.Count - 2; k++)
-                        {
-                            if (k + 2 > sectionList.Count)
-                                break;
-
-                            var newGap1 = sectionList[k + 1] - sectionList[k];
-                            var newGap2 = sectionList[k + 2] - sectionList[k + 1];
-
-                            if (newGap1 > OnlyJack || newGap2 > OnlyJack)
-                                continue;
-
-                            jackCount++;
-                            for (var l = k + 2; l < sectionList.Count - 1; l++)
-                            {
-                                if (sectionList[l + 1] - sectionList[l] > OnlyJack)
-                                {
-                                    k = l;
-                                    break;
-                                }
-
-                                jackCount++;
-                            }
-                        }
-                    }
-                    else
-                        jackCount += sectionList.Count - 2;
+                    
+                    sectionList.Add(new List<INote>(tempList));
                 }
             }
 
-            return (double)jackCount / Count;
+            sectionList.Sort(new JackComparer());
+
+            return sectionList;
         }
 
         public double GetVibroRatio()
@@ -302,6 +239,15 @@ namespace CloudDiff.Processor
                 spamCount += sectionLines.Count * sectionList.Count;
 
             return (double)spamCount / Count;
+        }
+
+        private double GetJackCutOff(int time)
+        {
+            for (var i = 0; i < NewJacks.Count - 1; i++)
+                if (time >= NewJacks[i].Item2 && time < NewJacks[i + 1].Item2)
+                    return NewJacks[i].Item1;
+
+            return NewJacks[NewJacks.Count - 1].Item1;
         }
     }
 }

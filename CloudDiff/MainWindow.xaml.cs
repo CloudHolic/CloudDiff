@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using System.Windows;
 using System.Windows.Forms;
@@ -73,19 +74,19 @@ namespace CloudDiff
                 }));
 
                 var map = new BeatmapInfo(text);
-                var jack = new PatternAnalyzer(map.Notes, map.LNs, map.Data.Keys, map.Data.SpecialStyle);
+                var jack = new PatternAnalyzer(map.Notes, map.LNs, map.Data.Keys, map.Data.Bpms, map.Data.SpecialStyle);
                 var specialStyle = map.Data.SpecialStyle ||
                     (map.Data.Keys == 8 && (double)(jack.Notes[0].Count + jack.LNs[0].Count) / jack.Count < 0.06);
-
+                var maxBpm = Math.Round(map.Data.Bpms.Select(cur => cur.Item1).Max(), 2);
+                var minBpm = Math.Round(map.Data.Bpms.Select(cur => cur.Item1).Min(), 2);
+                
                 output = map.Data.Artist + " - " + map.Data.Title + " [" + map.Data.Diff + "]\nMade by " + map.Data.Creator
-                         + "\nBPM: " + (Math.Abs(map.Data.MaxBpm - map.Data.MinBpm) < 0.001
-                             ? Convert.ToString(map.Data.MaxBpm, CultureInfo.CurrentCulture) 
-                             : map.Data.MinBpm + " - " + map.Data.MaxBpm + "\t")
+                         + "\nBPM: " + (Math.Abs(maxBpm - minBpm) < 0.001 ? $"{maxBpm}" : $"{minBpm} - {maxBpm}\t")
                          + "\tOD: " + map.Data.Od + "\tHP: " + map.Data.Hp
                          + "\tKeys: " + (specialStyle ? Convert.ToString(map.Data.Keys - 1) + "+1" : Convert.ToString(map.Data.Keys))
 #if DEBUG
-                         + "\nJack Ratio: " + Math.Round(jack.GetOldJackRatio() * 100, 2) + "%   "
-                         + "\tVibro Ratio: " + Math.Round(jack.GetVibroRatio() * 100, 2) + "%"
+                         //+ "\nJack Ratio: " + Math.Round(jack.GetOldJackRatio() * 100, 2) + "%   "
+                         + "\nVibro Ratio: " + Math.Round(jack.GetVibroRatio() * 100, 2) + "%"
                          + "\tSpam Ratio: " + Math.Round(jack.GetSpamRatio() * 100, 2) + "%"
                          + "\nJenks Density: " + Math.Round(map.JenksDen, 2)
                          + "\tCorrected Jenks Density: " + Math.Round(map.CorJenksDen, 2)

@@ -59,7 +59,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Processor\NoteComparer.cs" />
+    <Compile Include="Comparer\JackComparer.cs" />
+    <Compile Include="Comparer\NoteComparer.cs" />
     <Compile Include="Structures\LongNote.cs" />
     <Compile Include="Structures\Metadata.cs" />
     <Compile Include="Structures\Note.cs" />
@@ -90,7 +91,7 @@
     <Compile Include="Processor\NaturalBreaks.cs" />
     <Compile Include="Processor\PatternAnalyzer.cs" />
     <Compile Include="Processor\RatingCalculator.cs" />
-    <Compile Include="Processor\TupleComparer.cs" />
+    <Compile Include="Comparer\TupleComparer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs">
       <SubType>Code</SubType>
     </Compile>

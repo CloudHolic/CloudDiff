@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace CloudDiff.Processor
+namespace CloudDiff.Comparer
 {
     public class TupleComparer: IComparer<Tuple<int, int>>
     {

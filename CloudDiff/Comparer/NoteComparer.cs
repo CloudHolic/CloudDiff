@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using CloudDiff.Structures;
 
-namespace CloudDiff.Processor
+namespace CloudDiff.Comparer
 {
     public class NoteComparer : IComparer<INote>
     {

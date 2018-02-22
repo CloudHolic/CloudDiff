@@ -135,7 +135,6 @@ namespace CloudDiff.Processor
         private static void CalcCorrectedDensities(ref List<Note> notes, ref List<LongNote> lns, int key, out List<double> density)
         {
             int Key;
-            var pat = new PatternAnalyzer(notes, lns, key, false);
 
             var corNotes = new List<NoteCount>();
             var corLNs = new List<LongNoteCount>();
@@ -144,7 +143,7 @@ namespace CloudDiff.Processor
             var LNs = new List<LongNote>();
 
             density = new List<double>();
-            var specialStyle = key==8 && (double)(pat.Notes[0].Count + pat.LNs[0].Count)/pat.Count < 0.06;
+            var specialStyle = PatternAnalyzer.IsSpecialStyle(notes, lns);
             if (!specialStyle)
             {
                 Notes = notes;
