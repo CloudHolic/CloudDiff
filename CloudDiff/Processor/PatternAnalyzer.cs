@@ -10,19 +10,17 @@ namespace CloudDiff.Processor
 {
     public class PatternAnalyzer
     {
-        public List<Note>[] Notes { get; }
-
-        public List<LongNote>[] LNs { get; }
-
-        public List<INote>[] TotalNotes { get; }
-
-        public Dictionary<int, List<Tuple<int, int>>> Times { get; }
-        
         public int Key { get; }
 
         public int Count { get; }
 
         public bool SpecialStyle { get; }
+
+        public List<List<INote>> JackSectionList { get; }
+
+        private readonly List<INote>[] TotalNotes;
+
+        private readonly Dictionary<int, List<Tuple<int, int>>> Times;
 
         //  Jack Cut-off points
         private readonly List<Tuple<double, double>> NewJacks;
@@ -35,26 +33,20 @@ namespace CloudDiff.Processor
             Key = key;
             Count = notes.Count + lns.Count;
             SpecialStyle = specialstyle;
-
-            Notes = new List<Note>[key];
-            LNs = new List<LongNote>[key];
+            
             TotalNotes = new List<INote>[key];
             Times = new Dictionary<int, List<Tuple<int, int>>>();
+            JackSectionList = new List<List<INote>>();
 
-            NewJacks = bpms.Select(cur => Tuple.Create(BpmConverter.BpmToMilliseconds(cur.Item1), cur.Item2)).ToList();
+            NewJacks = bpms.Select(cur => Tuple.Create(BpmConverter.BpmToMilliseconds(cur.Item1, 1), cur.Item2)).ToList();
 
             var tempDic = new Dictionary<int, List<Tuple<int, int>>>();
 
             for (var i = 0; i < key; i++)
-            {
-                Notes[i] = new List<Note>();
-                LNs[i] = new List<LongNote>();
                 TotalNotes[i] = new List<INote>();
-            }
 
             foreach (var cur in notes)
             {
-                Notes[cur.Lane].Add(cur);
                 TotalNotes[cur.Lane].Add(cur);
 
                 if(!tempDic.ContainsKey(cur.Time))
@@ -64,7 +56,6 @@ namespace CloudDiff.Processor
 
             foreach (var cur in lns)
             {
-                LNs[cur.Lane].Add(cur);
                 TotalNotes[cur.Lane].Add(cur);
 
                 if (!tempDic.ContainsKey(cur.Time))
@@ -103,9 +94,8 @@ namespace CloudDiff.Processor
             return (double)firstLineNotes / Count < 0.06;
         }
 
-        public List<List<INote>> GetJackSections()
+        private void GetJackSections()
         {
-            var sectionList = new List<List<INote>>();
             var tempList = new List<INote>();
 
             //  Just find all the 2 or more notes which is in same lane with gap <= (Current BPM, 1/4 snap)
@@ -134,14 +124,12 @@ namespace CloudDiff.Processor
 
                         tempList.Add(curLane[j + 1]);
                     }
-                    
-                    sectionList.Add(new List<INote>(tempList));
+
+                    JackSectionList.Add(new List<INote>(tempList));
                 }
             }
 
-            sectionList.Sort(new JackComparer());
-
-            return sectionList;
+            JackSectionList.Sort(new JackComparer());
         }
 
         public double GetVibroRatio()
