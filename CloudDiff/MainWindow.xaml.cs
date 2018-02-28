@@ -83,9 +83,9 @@ namespace CloudDiff
                 output = map.Data.Artist + " - " + map.Data.Title + " [" + map.Data.Diff + "]\nMade by " + map.Data.Creator
                          + "\nBPM: " + (Math.Abs(maxBpm - minBpm) < 0.001 ? $"{maxBpm}" : $"{minBpm} - {maxBpm}\t")
                          + "\tOD: " + map.Data.Od + "\tHP: " + map.Data.Hp
-                         + "\tKeys: " + (specialStyle ? Convert.ToString(map.Data.Keys - 1) + "+1" : Convert.ToString(map.Data.Keys))
+                         + "\tKeys: " + (map.Data.Keys == 8 || specialStyle ? Convert.ToString(map.Data.Keys - 1) + "+1" : Convert.ToString(map.Data.Keys))
 #if DEBUG
-                         + "\nJack Ratio: " + Math.Round(RatingCalculator.CalcJackScore(jack), 2) + "%   "
+                         + "\nJack Score: " + Math.Round(RatingCalculator.CalcJackScore(jack), 2) + "    "
                          + "\tVibro Ratio: " + Math.Round(jack.GetVibroRatio() * 100, 2) + "%"
                          + "\tSpam Ratio: " + Math.Round(jack.GetSpamRatio() * 100, 2) + "%"
                          + "\nJenks Density: " + Math.Round(map.JenksDen, 2)

@@ -1,5 +1,6 @@
 ﻿using System;
 using CloudDiff.Beatmap;
+using CloudDiff.Utils;
 
 namespace CloudDiff.Processor
 {
@@ -13,17 +14,22 @@ namespace CloudDiff.Processor
 
         public static double CalcJackScore(PatternAnalyzer pat)
         {
-            var jackCount = 0;
-
+            var jackScore = 0.0;
             foreach (var curJack in pat.JackSectionList)
             {
-                foreach (var curNote in curJack)
+                for (var i = 0 ; i < curJack.Count ; i++)
                 {
+                    double gap1 = 0, gap2 = 0;
+                    if (i > 0)
+                        gap1 = GetJackBpmScore(BpmConverter.MillisecondsToBpm(curJack[i].Time - curJack[i - 1].Time));
+                    if (i < curJack.Count - 1)
+                        gap2 = GetJackBpmScore(BpmConverter.MillisecondsToBpm(curJack[i + 1].Time - curJack[i].Time));
 
+                    jackScore += (gap1 + gap2) / (Math.Abs(gap1) < 0.001 || Math.Abs(gap2) < 0.001 ? 1 : 2) * GetJackTimesScore(curJack.Count);
                 }
             }
 
-            return (double)jackCount / pat.Count * 100;
+            return jackScore / pat.Count;
         }
 
         private static double GetJackTimesScore(int times)

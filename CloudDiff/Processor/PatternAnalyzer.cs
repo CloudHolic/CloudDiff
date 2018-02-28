@@ -38,7 +38,9 @@ namespace CloudDiff.Processor
             Times = new Dictionary<int, List<Tuple<int, int>>>();
             JackSectionList = new List<List<INote>>();
 
-            NewJacks = bpms.Select(cur => Tuple.Create(BpmConverter.BpmToMilliseconds(cur.Item1, 1), cur.Item2)).ToList();
+            NewJacks = bpms.Select(cur =>
+                Tuple.Create(Math.Min(BpmConverter.BpmToMilliseconds(cur.Item1, 1), BpmConverter.BpmToMilliseconds(75)),
+                    cur.Item2)).ToList();
 
             var tempDic = new Dictionary<int, List<Tuple<int, int>>>();
 
