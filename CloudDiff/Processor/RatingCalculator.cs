@@ -1,13 +1,16 @@
 ﻿using System;
 using CloudDiff.Beatmap;
 using CloudDiff.Utils;
+using FLS;
 
 namespace CloudDiff.Processor
 {
     public static class RatingCalculator
     {
-        public static double CalcRating(BeatmapInfo map)
+        public static double CalcRating(BeatmapInfo map, PatternAnalyzer pat)
         {
+            // Variable : CorJenksDen, Key, Od, Jack, Spam, Vibro
+            
             // Not implemented yet.
             return 0.0;
         }

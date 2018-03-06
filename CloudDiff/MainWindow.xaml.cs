@@ -91,7 +91,7 @@ namespace CloudDiff
                          + "\nJenks Density: " + Math.Round(map.JenksDen, 2)
                          + "\tCorrected Jenks Density: " + Math.Round(map.CorJenksDen, 2)
 #endif
-                         + "\nRating: " + Math.Round(RatingCalculator.CalcRating(map), 2);
+                         + "\nRating: " + Math.Round(RatingCalculator.CalcRating(map, jack), 2);
 #if DEBUG
                 sw.Stop();
 

@@ -86,7 +86,6 @@
     <Compile Include="Parser\HitObjectParser.cs" />
     <Compile Include="Parser\MetadataParser.cs" />
     <Compile Include="Processor\DensityCalculator.cs" />
-    <Compile Include="Processor\FuzzyCalculator.cs" />
     <Compile Include="Processor\LineConverter.cs" />
     <Compile Include="Processor\NaturalBreaks.cs" />
     <Compile Include="Processor\PatternAnalyzer.cs" />
