@@ -10,7 +10,7 @@ namespace CloudDiff.Utils
                 return 0;
 
             //  +1 for correction.
-            return 60000 / (bpm * snap) + 1;
+            return (60000 / (bpm * snap)) + 1;
         }
 
         public static double MillisecondsToBpm(double ms, int snap = 4)

@@ -13,8 +13,7 @@ namespace CloudDiff.Processor
             //  Step 1 : Pattern Score
             //  Start from 'Corrected Jenks Density / key'
             var patScore = map.CorJenksDen / map.Data.Keys;
-
-
+            
             //  Step 2 : The final rating.
 
             //  Not implemented yet.
@@ -26,7 +25,7 @@ namespace CloudDiff.Processor
             var jackScore = 0.0;
             foreach (var curJack in pat.JackSectionList)
             {
-                for (var i = 0 ; i < curJack.Count ; i++)
+                for (var i = 0; i < curJack.Count; i++)
                 {
                     double gap1 = 0, gap2 = 0;
                     if (i > 0)
