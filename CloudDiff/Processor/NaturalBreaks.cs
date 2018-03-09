@@ -61,7 +61,7 @@ namespace CloudDiff.Processor
                 if (other is null)
                     return false;
 
-                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                //  ReSharper disable once CompareOfFloatsByEqualityOperator
                 return Value == other.Value && Count == other.Count;
             }
 
@@ -101,7 +101,7 @@ namespace CloudDiff.Processor
             var cwv = 0.0;
             var cw = 0;
 
-            // avoid array <-> list conversations in future
+            //  Avoid array <-> list conversations in future
             _previousSsm.AddRange(Enumerable.Repeat(0.0d, _bufferSize));
             _currentSsm.AddRange(Enumerable.Repeat(0.0d, _bufferSize));
 
@@ -113,7 +113,7 @@ namespace CloudDiff.Processor
                 cwv += w * currPair.Value;
                 _values.Add(new ValueCountTuple(cwv, cw));
                 if (i < _bufferSize)
-                    // prepare sum of squared means for first class. Last (k-1) values are omitted
+                    //  Prepare sum of squared means for first class. Last (k-1) values are omitted
                     _previousSsm[i] = cwv * cwv / cw;
             }
         }
@@ -164,14 +164,14 @@ namespace CloudDiff.Processor
             var mi = (int)Math.Floor((bi + ei) * 0.5);
             var mp = FindMaxBreakIndex(mi, bp, Math.Min(ep, mi + 1));
 
-            // solve first half of the sub-problems with lower 'half' of possible outcomes
+            //  Solve first half of the sub-problems with lower 'half' of possible outcomes
             CalculateRange(bi, mi, bp, Math.Min(mi, mp + 1));
 
-            // store result for the middle element.
+            //  Store result for the middle element.
             _classBreaks[_classBreaksIndex + mi] = mp;
 
-            // ReSharper disable once TailRecursiveCall
-            // sovle second half of the sub-problems with upper 'half' of possible outcomes
+            //  ReSharper disable once TailRecursiveCall
+            //  Sovle second half of the sub-problems with upper 'half' of possible outcomes
             CalculateRange(mi + 1, ei, mp, ep);
         }
         
@@ -184,7 +184,7 @@ namespace CloudDiff.Processor
                 {
                     CalculateRange(0, _bufferSize, 0, _bufferSize);
 
-                    // swap ssm lists
+                    //  Swap ssm lists
                     var temp = _previousSsm;
                     _previousSsm = _currentSsm;
                     _currentSsm = temp;
@@ -199,18 +199,18 @@ namespace CloudDiff.Processor
             var breaksArray = new List<double>(numBreaks);
             if (numBreaks == 0)
                 return breaksArray;
-            // avoid array <-> list conversations
+            //  Avoid array <-> list conversations
             breaksArray.AddRange(Enumerable.Repeat(0.0d, numBreaks));
 
             var classificator = new NaturalBreaks(tuples, numBreaks);
             if (numBreaks > 1)
             {
-                // runs the actual calculation
+                //  Runs the actual calculation
                 classificator.CalculateAll();
                 var lastClassBreakIndex = classificator.FindMaxBreakIndex(classificator._bufferSize - 1, 0, classificator._bufferSize);
                 while (--numBreaks != 0)
                 {
-                    // assign the break values to the result
+                    //  Assign the break values to the result
                     breaksArray[numBreaks] = tuples[lastClassBreakIndex + numBreaks].Value;
 
                     if (numBreaks > 1)

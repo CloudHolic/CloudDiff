@@ -16,7 +16,7 @@ namespace CloudDiff
     /// </summary>
     public partial class MainWindow
     {
-        // ReSharper disable once InconsistentNaming
+        //  ReSharper disable once InconsistentNaming
         private bool isCalculating;
 
         public MainWindow()
@@ -88,8 +88,8 @@ namespace CloudDiff
                          + "\nJack Score: " + Math.Round(RatingCalculator.CalcJackScore(jack), 2) + "    "
                          + "\tVibro Ratio: " + Math.Round(jack.GetVibroRatio() * 100, 2) + "%"
                          + "\tSpam Ratio: " + Math.Round(jack.GetSpamRatio() * 100, 2) + "%"
-                         + "\nJenks Density: " + Math.Round(map.JenksDen, 2)
-                         + "\tCorrected Jenks Density: " + Math.Round(map.CorJenksDen, 2)
+                         + "\nDensity Score: " + Math.Round(map.CorJenksDen, 2)
+                         + "\tSpeed Score: " + Math.Round(map.JenksSpeed, 2)
 #endif
                          + "\nRating: " + Math.Round(RatingCalculator.CalcRating(map, jack), 2);
 #if DEBUG

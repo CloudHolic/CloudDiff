@@ -1,68 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-
+using CloudDiff.Comparer;
 using CloudDiff.Structures;
 
-// ReSharper disable InconsistentNaming
+//  ReSharper disable InconsistentNaming
 namespace CloudDiff.Processor
 {
     public static class DensityCalculator
     {
-        public static double GetJenksDensity(ref List<Note> notes, ref List<LongNote> lns)
+        public static double GetJenksDensity(ref List<Note> notes, ref List<LongNote> lns, int key)
         {
-            int[] groupCorrection = {1, 1, 1, 2, 4, 7, 9, 10, 10, 10};
-            
             //  Get the list of densities.
-            CalcDensityList(ref notes, ref lns, out var denList);
+            CalcDensityList(ref notes, ref lns, key, out var denList);
 
-            //  Check if the density list is empty.
-            if (denList.Count == 0)
-                throw new InvalidOperationException("Empty list");
-
-            var temp = denList.Select(x => (double)x).ToList();
-            var corr = NaturalBreaks.CreateNaturalBreaksArray(temp, 10);
-            var groupList = new List<int>(denList.Count);
-
-            foreach (var cur in denList)
-            {
-                for (var j = 1; j < corr.Count + 1; j++)
-                {
-                    if (j == corr.Count || cur < corr[j])
-                    {
-                        groupList.Add(j - 1);
-                        break;
-                    }
-                }
-            }
-
-            var jenksDen = 0.0;
-            for (var i = 0; i < denList.Count; i++)
-                jenksDen += denList[i] * groupCorrection[groupList[i]];
-
-            var corGroupCount = 0;
-            for (var i = 0; i < 10; i++)
-                corGroupCount += groupList.Count(x => x == i) * groupCorrection[i];
-
-            return jenksDen / corGroupCount;
+            return ApplyJenks(ref denList);
         }
 
-        public static double GetCorrectedJenksDensity(ref List<Note> notes, ref List<LongNote> lns, int key)
+        public static double GetJenksSpeed(ref List<Note> notes, ref List<LongNote> lns)
+        {
+            //  Get the list of speeds.
+            CalcSpeedList(ref notes, ref lns, out var tempList);
+
+            var speedList = tempList.Select(x => (double)x).ToList();
+            return ApplyJenks(ref speedList);
+        }
+
+        private static double ApplyJenks(ref List<double> refList)
         {
             int[] groupCorrection = { 1, 1, 1, 2, 4, 7, 9, 10, 10, 10 };
 
-            //  Get the list of densities.
-            CalcCorrectedDensities(ref notes, ref lns, key, out var denList);
-
-            //  Check if the density list is empty.
-            if (denList.Count == 0)
+            //  Check if the speed list is empty.
+            if (refList.Count == 0)
                 throw new InvalidOperationException("Empty list");
 
-            var temp = denList.Select(x => (double)x).ToList();
-            var corr = NaturalBreaks.CreateNaturalBreaksArray(temp, 10);
-            var groupList = new List<int>(denList.Count);
+            var corr = NaturalBreaks.CreateNaturalBreaksArray(refList, 10);
+            var groupList = new List<int>(refList.Count);
 
-            foreach (var cur in denList)
+            foreach (var cur in refList)
             {
                 for (var j = 1; j < corr.Count + 1; j++)
                 {
@@ -74,13 +49,13 @@ namespace CloudDiff.Processor
                 }
             }
 
-            var corJenksDen = denList.Select((t, i) => t * groupCorrection[groupList[i]]).Sum();
+            var jenksVar = refList.Select((t, i) => t * groupCorrection[groupList[i]]).Sum();
 
-            var corGroupCount = 0;
+            var GroupCount = 0;
             for (var i = 0; i < 10; i++)
-                corGroupCount += groupList.Count(x => x == i) * groupCorrection[i];
+                GroupCount += groupList.Count(x => x == i) * groupCorrection[i];
 
-            return corJenksDen / corGroupCount;
+            return jenksVar / GroupCount;
         }
 
         private static Tuple<int, int> GetPeriods(ref List<Note> notes, ref List<LongNote> lns)
@@ -109,30 +84,7 @@ namespace CloudDiff.Processor
             return Tuple.Create(startPeriod, endPeriod);
         }
 
-        private static void CalcDensityList(ref List<Note> notes, ref List<LongNote> lns, out List<int> density)
-        {
-            density = new List<int>();
-
-            var periods = GetPeriods(ref notes, ref lns);
-            var startPeriod = periods.Item1;
-            var endPeriod = periods.Item2;
-
-            for (var i = startPeriod; i < endPeriod - 1000; i += 250)
-            {
-                var counts = 0;
-
-                //  Count the number of simple notes.
-                counts += notes.Count(cur => cur.Time >= i && cur.Time <= i + 1000);
-
-                //  Count the number of long notes.
-                counts += lns.Count(cur => (cur.Time >= i && cur.Time <= i + 1000)
-                                    || (cur.EndTime >= i && cur.EndTime <= i + 1000) || (cur.Time <= i && cur.EndTime >= i + 1000));
-
-                density.Add(counts);
-            }
-        }
-
-        private static void CalcCorrectedDensities(ref List<Note> notes, ref List<LongNote> lns, int key, out List<double> density)
+        private static void CalcDensityList(ref List<Note> notes, ref List<LongNote> lns, int key, out List<double> density)
         {
             int Key;
 
@@ -170,9 +122,10 @@ namespace CloudDiff.Processor
                 corNotes.AddRange(from cur in Notes where cur.Time >= i && cur.Time <= i + 1000 select new NoteCount(cur.Time, cur.Lane, 0));
 
                 corLNs.AddRange(
-                    from cur in LNs where (cur.Time >= i && cur.Time <= i + 1000)
-                    || (cur.EndTime >= i && cur.EndTime <= i + 1000)
-                    || (cur.Time <= i && cur.EndTime >= i + 1000)
+                    from cur in LNs
+                    where (cur.Time >= i && cur.Time <= i + 1000)
+                          || (cur.EndTime >= i && cur.EndTime <= i + 1000)
+                          || (cur.Time <= i && cur.EndTime >= i + 1000)
                     select new LongNoteCount(cur.Time, cur.EndTime, cur.Lane, 0));
 
                 //  Count the LN-count for each notes.
@@ -194,10 +147,35 @@ namespace CloudDiff.Processor
                 }
 
                 //  Correct the density.
-                var den = corNotes.Sum(cur => (double) Key / (Key - cur.LNs)) +
-                          corLNs.Sum(cur => (double) Key / (Key - cur.LNs) * 1.1);
+                var den = corNotes.Sum(cur => (double)Key / (Key - cur.LNs)) +
+                          corLNs.Sum(cur => (double)Key / (Key - cur.LNs) * 1.1);
 
                 density.Add(den);
+            }
+        }
+
+        private static void CalcSpeedList(ref List<Note> notes, ref List<LongNote> lns, out List<int> speed)
+        {
+            speed = new List<int>();
+
+            var periods = GetPeriods(ref notes, ref lns);
+            var startPeriod = periods.Item1;
+            var endPeriod = periods.Item2;
+
+            var distinctNotes = notes.Distinct(new NoteComparer()).ToArray();
+            var distinctLns = lns.Distinct(new NoteComparer()).ToArray();
+
+            for (var i = startPeriod; i < endPeriod - 1000; i += 250)
+            {
+                var counts = 0;
+
+                //  Count the number of simple notes.
+                counts += distinctNotes.Count(cur => cur.Time >= i && cur.Time <= i + 1000);
+
+                //  Count the number of long notes.
+                counts += distinctLns.Count(cur => cur.Time >= i && cur.Time <= i + 1000);
+
+                speed.Add(counts);
             }
         }
     }

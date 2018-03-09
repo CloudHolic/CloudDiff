@@ -9,9 +9,15 @@ namespace CloudDiff.Processor
     {
         public static double CalcRating(BeatmapInfo map, PatternAnalyzer pat)
         {
-            // Variable : CorJenksDen, Key, Od, Jack, Spam, Vibro
-            
-            // Not implemented yet.
+            //  Variable : CorJenksDen, Key, Od, Jack, Spam, Vibro
+            //  Step 1 : Pattern Score
+            //  Start from 'Corrected Jenks Density / key'
+            var patScore = map.CorJenksDen / map.Data.Keys;
+
+
+            //  Step 2 : The final rating.
+
+            //  Not implemented yet.
             return 0.0;
         }
 

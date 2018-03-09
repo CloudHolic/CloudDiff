@@ -5,7 +5,7 @@ using CloudDiff.Parser;
 using CloudDiff.Processor;
 using CloudDiff.Structures;
 
-// ReSharper disable InconsistentNaming
+//  ReSharper disable InconsistentNaming
 namespace CloudDiff.Beatmap
 {
     //  Represents a beatmap. It contains all information about a single osu-file.
@@ -17,9 +17,9 @@ namespace CloudDiff.Beatmap
 
         public List<LongNote> LNs { get; }
 
-        public double JenksDen { get; }
-
         public double CorJenksDen { get; }
+
+        public double JenksSpeed { get; }
 
         public BeatmapInfo(string filename)
         {
@@ -39,8 +39,8 @@ namespace CloudDiff.Beatmap
                 throw new FileNotFoundException();
 
             //  Calculate densities.
-            JenksDen = DensityCalculator.GetJenksDensity(ref notes, ref lns);
-            CorJenksDen = DensityCalculator.GetCorrectedJenksDensity(ref notes, ref lns, Data.Keys);
+            CorJenksDen = DensityCalculator.GetJenksDensity(ref notes, ref lns, Data.Keys);
+            JenksSpeed = DensityCalculator.GetJenksSpeed(ref notes, ref lns);
 
             //  Copy data.
             Notes = notes;
