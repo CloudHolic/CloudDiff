@@ -21,8 +21,8 @@ namespace CloudDiff.Processor
         {
             //  Get the list of speeds.
             CalcSpeedList(ref notes, ref lns, out var tempList);
-
             var speedList = tempList.Select(x => (double)x).ToList();
+
             return ApplyJenks(ref speedList);
         }
 
