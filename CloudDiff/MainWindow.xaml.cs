@@ -88,7 +88,7 @@ namespace CloudDiff
                          + "\nJack Score: " + Math.Round(RatingCalculator.CalcJackScore(jack), 2) + "    "
                          + "\tVibro Ratio: " + Math.Round(jack.GetVibroRatio() * 100, 2) + "%"
                          + "\tSpam Ratio: " + Math.Round(jack.GetSpamRatio() * 100, 2) + "%"
-                         + "\nDensity Score: " + Math.Round(map.CorJenksDen, 2)
+                         + "\nDensity Score: " + Math.Round(map.JenksDensity, 2)
                          + "\tSpeed Score: " + Math.Round(map.JenksSpeed, 2)
 #endif
                          + "\nRating: " + Math.Round(RatingCalculator.CalcRating(map, jack), 2);

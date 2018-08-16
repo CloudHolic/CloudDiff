@@ -17,7 +17,7 @@ namespace CloudDiff.Beatmap
 
         public List<LongNote> LNs { get; }
 
-        public double CorJenksDen { get; }
+        public double JenksDensity { get; }
 
         public double JenksSpeed { get; }
 
@@ -39,7 +39,7 @@ namespace CloudDiff.Beatmap
                 throw new FileNotFoundException();
 
             //  Calculate densities.
-            CorJenksDen = DensityCalculator.GetJenksDensity(ref notes, ref lns, Data.Keys);
+            JenksDensity = DensityCalculator.GetJenksDensity(ref notes, ref lns, Data.Keys);
             JenksSpeed = DensityCalculator.GetJenksSpeed(ref notes, ref lns);
 
             //  Copy data.

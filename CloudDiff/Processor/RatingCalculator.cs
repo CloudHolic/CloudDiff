@@ -12,7 +12,7 @@ namespace CloudDiff.Processor
             //  Variable : CorJenksDen, Key, Od, Jack, Spam, Vibro
             //  Step 1 : Pattern Score
             //  Start from 'Corrected Jenks Density / key'
-            var patScore = map.CorJenksDen / map.Data.Keys;
+            var patScore = map.JenksDensity / map.Data.Keys;
             
             //  Step 2 : The final rating.
 
